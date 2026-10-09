@@ -1,0 +1,38 @@
+
+# API 密钥和本地配置
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+**/secrets.toml
+
+# Python 缓存和虚拟环境
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+venv/
+
+# 系统文件和日志
+.DS_Store
+*.log
+*_log.txt
+
+# 默认忽略所有分析输出
+analysis_outputs/**
+
+# 仅保留 Agent 运行需要的知识库
+!analysis_outputs/agent_knowledge/
+analysis_outputs/agent_knowledge/**
+!analysis_outputs/agent_knowledge/*.csv
+!analysis_outputs/agent_knowledge/*.json
+!analysis_outputs/agent_knowledge/README.txt
+
+# 原始评论、测试数据和中间结果
+*.csv
+!analysis_outputs/agent_knowledge/*.csv
+
+# 只上传部署所需的 Python 文件
+*.py
+!agent.py
+!app.py
