@@ -326,226 +326,50 @@ def add_route(
 # 8. V2 Router
 # ============================================================
 
-def route_question(
-    question
-):
-
-    q = question.lower()
-
-    route_scores = []
-
-
-    for route in ROUTES:
-
-        score = 0
-
-
-        for keyword in route[
-            "keywords"
-        ]:
-
-            if keyword.lower() in q:
-
-                score += 1
-
-
-        if score > 0:
-
-            route_scores.append(
-                (
-                    route,
-                    score
-                )
-            )
-
-
-    # --------------------------------------------------------
-    # 无关键词命中：
-    # 默认综合研究
-    # --------------------------------------------------------
-
-    if not route_scores:
-
-        selected = []
-
-        add_route(
-            selected,
-            "persona_analysis"
-        )
-
-        add_route(
-            selected,
-            "churn_analysis"
-        )
-
-        return selected
-
-
-    route_scores = sorted(
-        route_scores,
-        key=lambda x:
-            x[1],
-        reverse=True
-    )
-
-
-    highest_score = (
-        route_scores[0][1]
-    )
-
-
+def route_question(question):
+    """根据问题涉及的研究维度选择工具；显式要求优先于关键词评分。"""
+    q = str(question).lower()
     selected = []
 
+    def contains(*words):
+        return any(word.lower() in q for word in words)
 
-    for route, score in route_scores:
+    # 显式研究维度：不会因为其他工具关键词更多而被排除。
+    if contains("平台", "taptap", "ios", "跨平台", "平台对比", "平台差异"):
+        add_route(selected, "platform_comparison")
+    if contains("流失", "退游", "停玩", "停氪", "留存", "挽回", "churn"):
+        add_route(selected, "churn_analysis")
+    if contains("persona", "画像", "哪类玩家", "哪种玩家", "玩家群体", "用户群体", "不同类型玩家", "四类玩家", "不同玩家"):
+        add_route(selected, "persona_analysis")
+    if contains("竞品", "未定事件簿", "世界之外", "借鉴", "竞对"):
+        add_route(selected, "competitor_analysis")
+    if contains("原文", "原话", "真实评论", "评论证据", "评论案例", "评论证明", "具体评论", "引用评论"):
+        add_route(selected, "review_evidence")
+    if contains("风险", "舆情", "危机", "集体行动", "举报", "抵制"):
+        add_route(selected, "risk_analysis")
+    if contains("运营建议", "运营策略", "优化建议", "内容运营", "怎么运营", "如何挽回", "如何留住", "怎么办", "策略建议"):
+        add_route(selected, "persona_strategy")
 
-        if (
-            score
-            >= highest_score - 1
-        ):
+    # 没有明确研究维度时，参考 manifest 的关键词，但不使用相对分数截断。
+    if not selected:
+        scored = []
+        for route in ROUTES:
+            score = sum(bool(keyword) and str(keyword).lower() in q for keyword in route.get("keywords", []))
+            if score:
+                scored.append((score, route["route_name"]))
+        for _, name in sorted(scored, reverse=True)[:3]:
+            add_route(selected, name)
 
-            selected.append(
-                route
-            )
+    if not selected:
+        add_route(selected, "persona_analysis")
+        add_route(selected, "churn_analysis")
 
-
-    # ========================================================
-    # 特殊问题类型增强
-    # ========================================================
-
-    # --------------------------------------------------------
-    # 1. 运营 / 挽回 / 怎么办
-    # --------------------------------------------------------
-
-    strategy_question = any(
-
-        phrase in question
-
-        for phrase in [
-
-            "怎么办",
-            "怎么运营",
-            "怎么挽回",
-            "怎么留住",
-            "如何挽回",
-            "如何留住",
-            "运营建议",
-            "运营策略",
-            "内容策略",
-            "沟通策略",
-            "应该怎么做",
-            "应该如何",
-            "怎么处理"
-        ]
-    )
-
-
-    if strategy_question:
-
-        add_route(
-            selected,
-            "persona_strategy"
-        )
-
-        add_route(
-            selected,
-            "churn_analysis"
-        )
-
-        add_route(
-            selected,
-            "risk_analysis"
-        )
-
-
-    # --------------------------------------------------------
-    # 2. 竞品
-    # --------------------------------------------------------
-
-    competitor_question = any(
-
-        phrase in question
-
-        for phrase in [
-
-            "竞品",
-            "未定事件簿",
-            "未定",
-            "世界之外",
-            "借鉴",
-            "参考竞品",
-            "竞品怎么做"
-        ]
-    )
-
-
-    if competitor_question:
-
-        add_route(
-            selected,
-            "competitor_analysis"
-        )
-
-
-    # --------------------------------------------------------
-    # 3. 问“哪类玩家”
-    # --------------------------------------------------------
-
-    persona_question = any(
-
-        phrase in question
-
-        for phrase in [
-
-            "哪类玩家",
-            "哪种玩家",
-            "什么人群",
-            "哪类用户",
-            "persona",
-            "用户画像",
-            "玩家画像"
-        ]
-    )
-
-
-    if persona_question:
-
-        add_route(
-            selected,
-            "persona_analysis"
-        )
-
-
-    # --------------------------------------------------------
-    # 4. 要评论证据
-    # --------------------------------------------------------
-
-    evidence_question = any(
-
-        phrase in question
-
-        for phrase in [
-
-            "评论证明",
-            "玩家原话",
-            "真实评论",
-            "评论证据",
-            "有哪些评论",
-            "玩家怎么说",
-            "具体案例"
-        ]
-    )
-
-
-    if evidence_question:
-
-        add_route(
-            selected,
-            "review_evidence"
-        )
-
-
-    # 最多 5 个
+    # 最多五个，保留明确问题中的核心分析工具，策略表可作为次级补充。
+    priority = [
+        "persona_analysis", "churn_analysis", "platform_comparison",
+        "competitor_analysis", "review_evidence", "risk_analysis", "persona_strategy"
+    ]
+    selected.sort(key=lambda route: priority.index(route["route_name"]) if route["route_name"] in priority else 99)
     return selected[:5]
 
 
@@ -712,10 +536,9 @@ def tool_persona_analysis(
     ).copy()
 
 
-    persona = detect_persona(
-        question
-    )
-
+    persona = detect_persona(question)
+    if any(term in question for term in ("四类", "所有", "不同类型", "各类", "分别", "全部", "不同玩家")):
+        persona = None
 
     if persona:
 
@@ -865,7 +688,10 @@ def tool_competitor_analysis(
     competitor = None
 
 
-    if (
+    if "世界之外" in question and ("未定事件簿" in question or "未定" in question):
+        competitor = None
+
+    elif (
         "未定事件簿"
         in question
         or "未定"
@@ -887,10 +713,9 @@ def tool_competitor_analysis(
         )
 
 
-    persona = detect_persona(
-        question
-    )
-
+    persona = detect_persona(question)
+    if any(term in question for term in ("四类", "所有", "不同类型", "各类", "分别", "全部", "不同玩家")):
+        persona = None
 
     subset = knowledge.copy()
 
@@ -1501,141 +1326,68 @@ SYSTEM_PROMPT = """
 # 21. Agent Answer
 # ============================================================
 
-def ask_agent(
-    question,
-    show_route=True
-):
-
-    routes = route_question(
-        question
-    )
-
-
-    tool_results = run_tools(
-        question,
-        routes
-    )
-
-
-    context = build_context(
-        tool_results
-    )
-
-
-    guard_text = build_guard_text(
-        routes
-    )
-
-
-    route_names = [
-
-        route[
-            "route_name"
-        ]
-
-        for route in routes
-    ]
-
+def ask_agent(question, show_route=True):
+    routes = route_question(question)
+    tool_results = run_tools(question, routes)
+    context = build_context(tool_results)
+    guard_text = build_guard_text(routes)
+    route_names = [route["route_name"] for route in routes]
 
     if show_route:
+        print("\n🧭 Agent Route：" + " + ".join(route_names))
 
-        print()
+    failed_tools = [r["route"] for r in tool_results if str(r["output"]).startswith("Tool Error:")]
+    if failed_tools:
+        print("⚠️ Tool errors:", ", ".join(failed_tools))
 
-        print(
-            "🧭 Agent Route："
-            + " + ".join(
-                route_names
-            )
-        )
-
-
-    user_prompt = f"""
-用户问题：
-
+    user_prompt = f"""用户问题：
 {question}
 
-
-下面是 Agent 自动调用的 Knowledge Tools：
-
+本轮实际调用的 Knowledge Tools：
 {context}
 
-
-下面是本轮 Evidence Guard：
-
+Evidence Guard：
 {guard_text}
 
-
-请直接回答用户问题。
-
-要求：
-
-1. 优先回答问题本身。
-2. 使用具体数据时说明其样本语境。
-3. 不自行创造任何时间 KPI 或业务数字。
-4. 不把相关关系写成因果。
-5. 不把“没调用工具”误写成“没有数据”。
-6. 如果是策略题：
-   - 先说明优先处理什么
-   - 再给可执行动作
-   - 不需要虚构执行时长
-7. 如果是竞品题：
-   - 只使用 verified evidence
-   - 明确机制证据不等于玩家满意
-8. 不要在结尾主动提供 PPT、简报或其他无关服务。
+请直接回答问题，按以下要求：
+1. 综合本轮所有成功工具的证据；如果工具出错，明确说明而非编造。
+2. 优先给出简明结论、关键数据、三项可执行建议、证据边界。
+3. 数据必须注明样本语境；流失信号不等于实际流失，相关不等于因果。
+4. 不自行创造业务数字、时间 KPI、竞品满意度结论。
+5. 对于四类 Persona 的比较，不得只报告其中一类。
+6. 避免冗长重复，确保完整结束，不主动提供无关服务。
 """
 
-
-    response = (
-        client
-        .chat
-        .completions
-        .create(
-
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": user_prompt},
+    ]
+    parts = []
+    max_rounds = 3
+    for attempt in range(max_rounds):
+        response = client.chat.completions.create(
             model=MODEL_NAME,
-
-            messages=[
-
-                {
-                    "role":
-                        "system",
-
-                    "content":
-                        SYSTEM_PROMPT
-                },
-
-                {
-                    "role":
-                        "user",
-
-                    "content":
-                        user_prompt
-                }
-
-            ],
-
-            extra_body={
-
-                "thinking": {
-
-                    "type":
-                        "disabled"
-                }
-            },
-
-            max_tokens=4096
+            messages=messages,
+            extra_body={"thinking": {"type": "disabled"}},
+            max_tokens=4096,
         )
-    )
+        choice = response.choices[0]
+        piece = choice.message.content or ""
+        reason = choice.finish_reason
+        print(f"🧪 DeepSeek finish_reason (round {attempt + 1}): {reason}")
+        parts.append(piece)
+        if reason != "length":
+            break
+        if attempt == max_rounds - 1:
+            parts.append("\n\n⚠️ 回答达到最大续写次数，可能仍不完整。")
+            break
+        messages.append({"role": "assistant", "content": piece})
+        messages.append({
+            "role": "user",
+            "content": "请从刚才停止的位置继续完成尚未写完的内容，不要重复前文。请简洁收尾并包含证据边界。",
+        })
 
-
-    answer = (
-        response
-        .choices[0]
-        .message
-        .content
-    )
-
-
-    return answer
+    return "\n".join(parts).strip()
 
 
 # ============================================================
@@ -1806,3 +1558,4 @@ if __name__ == "__main__":
             )
 
             print()
+            
