@@ -1622,7 +1622,7 @@ def ask_agent(
                 }
             },
 
-            max_tokens=1800
+            max_tokens=4096
         )
     )
 
