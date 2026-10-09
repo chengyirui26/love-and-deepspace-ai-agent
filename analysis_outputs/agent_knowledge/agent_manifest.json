@@ -1,0 +1,180 @@
+{
+  "project": "恋与深空玩家舆情与内容运营策略分析",
+  "version": "Agent Knowledge V1",
+  "knowledge_base_path": "/Users/chengyirui/Desktop/恋与深空玩家舆情与内容运营策略分析/analysis_outputs/agent_knowledge",
+  "sources": {
+    "player_platforms": [
+      "TapTap",
+      "iOS App Store"
+    ],
+    "competitors": [
+      "未定事件簿",
+      "世界之外"
+    ]
+  },
+  "persona_types": [
+    "信任敏感/长期支持型",
+    "价值观底线型",
+    "情感陪伴/角色投入型",
+    "产品/付费体验型"
+  ],
+  "available_tools": [
+    "platform_comparison",
+    "churn_analysis",
+    "risk_analysis",
+    "persona_analysis",
+    "persona_strategy",
+    "competitor_analysis",
+    "review_evidence"
+  ],
+  "routing_rules": [
+    {
+      "route_name": "platform_comparison",
+      "description": "比较 TapTap 和 iOS 的情绪、流失、风险、群体行动和平台差异",
+      "keywords": [
+        "平台",
+        "TapTap",
+        "taptap",
+        "iOS",
+        "ios",
+        "App Store",
+        "苹果",
+        "两个平台",
+        "跨平台",
+        "平台区别",
+        "平台差异"
+      ],
+      "knowledge_files": [
+        "01_platform_summary.csv"
+      ]
+    },
+    {
+      "route_name": "churn_analysis",
+      "description": "分析玩家流失、退游意向、流失驱动因素和流失风险",
+      "keywords": [
+        "流失",
+        "退游",
+        "退坑",
+        "为什么走",
+        "为什么离开",
+        "留存",
+        "挽回",
+        "挽留",
+        "churn",
+        "离开游戏"
+      ],
+      "knowledge_files": [
+        "02_churn_drivers.csv",
+        "04_need_churn_drivers.csv",
+        "10_review_evidence.csv"
+      ]
+    },
+    {
+      "route_name": "risk_analysis",
+      "description": "分析高风险舆情、价值观争议、群体行动和风险主题",
+      "keywords": [
+        "风险",
+        "舆情",
+        "高风险",
+        "危机",
+        "价值观",
+        "历史",
+        "女性安全",
+        "举报",
+        "维权",
+        "群体行动",
+        "敏感争议"
+      ],
+      "knowledge_files": [
+        "03_risk_drivers.csv",
+        "10_review_evidence.csv"
+      ]
+    },
+    {
+      "route_name": "persona_analysis",
+      "description": "查询核心玩家类型、Persona、用户画像和不同人群特征",
+      "keywords": [
+        "persona",
+        "Persona",
+        "用户画像",
+        "玩家画像",
+        "人群",
+        "用户类型",
+        "玩家类型",
+        "哪类玩家",
+        "核心用户",
+        "用户分群"
+      ],
+      "knowledge_files": [
+        "05_persona_summary.csv",
+        "06_persona_topics.csv",
+        "07_persona_strategy.csv"
+      ]
+    },
+    {
+      "route_name": "persona_strategy",
+      "description": "针对某类 Persona 提供沟通、内容、社区和留存策略",
+      "keywords": [
+        "怎么运营",
+        "怎么挽回",
+        "怎么留住",
+        "运营建议",
+        "运营策略",
+        "内容策略",
+        "沟通策略",
+        "社区策略",
+        "应该怎么做",
+        "怎么办"
+      ],
+      "knowledge_files": [
+        "07_persona_strategy.csv",
+        "05_persona_summary.csv",
+        "02_churn_drivers.csv",
+        "03_risk_drivers.csv"
+      ]
+    },
+    {
+      "route_name": "competitor_analysis",
+      "description": "查询未定事件簿和世界之外的真实竞品案例及可借鉴策略",
+      "keywords": [
+        "竞品",
+        "未定事件簿",
+        "世界之外",
+        "未定",
+        "世界之外怎么做",
+        "竞品怎么做",
+        "借鉴",
+        "参考竞品",
+        "对比竞品"
+      ],
+      "knowledge_files": [
+        "08_competitor_knowledge.csv",
+        "09_competitor_matrix.csv"
+      ]
+    },
+    {
+      "route_name": "review_evidence",
+      "description": "查找真实玩家评论证据、代表性评论和具体案例",
+      "keywords": [
+        "评论",
+        "原话",
+        "玩家怎么说",
+        "案例",
+        "证据",
+        "代表评论",
+        "真实评论",
+        "具体评论"
+      ],
+      "knowledge_files": [
+        "10_review_evidence.csv"
+      ]
+    }
+  ],
+  "research_constraints": [
+    "评论比例描述采集样本，不能直接外推为全部玩家比例",
+    "iOS 数据属于事件窗口样本，不能直接代表长期 iOS 用户总体",
+    "竞品 evidence 仅使用 verified 案例进入正式 Agent Knowledge",
+    "Driver Score 用于探索性排序，不能解释为因果关系",
+    "Persona 不包含未采集的年龄、职业、收入或地区信息"
+  ]
+}
